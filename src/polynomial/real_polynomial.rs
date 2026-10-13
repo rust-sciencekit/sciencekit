@@ -1,4 +1,5 @@
 use crate::complex::*;
+use crate::linear_algebra::Matrix;
 use std::fmt;
 use std::ops::{Add, Div, Mul, Neg, Sub};
 
@@ -147,6 +148,25 @@ impl Polynomial {
     /// The degree of the polynomial.
     pub fn degree(&self) -> usize {
         self.coefficients.len() - 1
+    }
+
+    /// Returns the companion matrix of the polynomial
+    pub fn companion_matrix(&self) -> Matrix {
+        let n: usize = self.degree();
+        let mut companion_matrix: Matrix = Matrix::from_value(0.0, n, n);
+        
+        // Updating the bottom line coefficients
+        for i in 0..n {
+            companion_matrix.set(n-1, i, -self.coefficients[i]);
+        }
+
+        // Updating the diagonal elements
+        let a_n: f64 = *self.coefficients.last().unwrap();
+        for i in 0..(n-1) {
+            companion_matrix.set(i, i+1, a_n);
+        }
+
+        companion_matrix / a_n
     }
 
     /// Transforms the polynomial into its derivative
@@ -363,7 +383,9 @@ impl Polynomial {
                 }
             }
 
-            _ => panic!("degree > 3 not supported (yet)"),
+            _ => {
+                self.companion_matrix().eigenvalues(1.0e-15)
+            },
         }
     }
 }
